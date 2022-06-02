@@ -1,0 +1,28 @@
+import numpy as np
+import skfuzzy as fuzzy
+from skfuzzy import control as ctrl
+from thefuzz import fuzz
+import skfuzzy as fuzz
+pip install thefuzz
+pip install scikit-fuzzy
+penjualanan = ctrl.Antecedent(np.arange(0, 2500, 1), 'Penjualanan Rokok')
+keuntungan = ctrl.Antecedent(np.arange(0, 1000001, 1), 'Kenuntungan Penjualanan')
+pembelian = ctrl.Consequent(np.arange(0, 1001, 1), 'Pembelian Rokok')
+penjualanan['sedikit'] = fuzz.trapmf(penjualanan.universe, [0, 0, 1000, 2000])
+penjualanan['banyak'] = fuzz.trapmf(penjualanan.universe, [1000, 1600, 2000, 2000])
+keuntungan['turun'] = fuzz.trapmf(keuntungan.universe, [0, 0, 500000, 1000000])
+keuntungan['naik'] = fuzz.trimf(keuntungan.universe, [500000, 1000000, 1000000])
+pembelian['berkurang'] = fuzz.trapmf(pembelian.universe, [0, 0, 100, 1000])
+pembelian['bertambah'] = fuzz.trimf(pembelian.universe, [100, 1000, 1000])
+penjualanan.view()
+pembelian.view()
+keuntungan.view()
+rule1 = ctrl.Rule(penjualanan['sedikit'] & keuntungan['turun'], pembelian['berkurang'])
+rule2 = ctrl.Rule(penjualanan['banyak'] & keuntungan['naik'], pembelian['bertambah'])
+pembelian_ctrl = ctrl.ControlSystem([rule1, rule2,])
+pembelian_rokok = ctrl.ControlSystemSimulation(pembelian_ctrl)
+pembelian_rokok.input['Penjualanan Rokok'] = 1600
+pembelian_rokok.input['Kenuntungan Penjualanan'] = 800
+pembelian_rokok.compute()
+print(pembelian_rokok.output['Pembelian Rokok'])
+pembelian.view(sim=pembelian_rokok)
